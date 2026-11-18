@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>房貸套利試算 (實體配息與最新股價版)</title>
+    <style>
+        :root { --primary: #0f172a; --accent: #3b82f6; --bg: #f8fafc; --card: #ffffff; --text: #1e293b; --success: #059669; --danger: #dc2626; --warning: #d97706; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background-color: var(--bg); color: var(--text); margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+        .app-container { max-width: 480px; margin: 0 auto; background-color: var(--card); min-height: 100vh; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); display: flex; flex-direction: column; padding-bottom: 24px; }
+        .header { background-color: var(--primary); color: #fff; padding: 18px 16px; text-align: center; font-size: 1.25rem; font-weight: 600; position: sticky; top: 0; z-index: 10; }
+        .section { padding: 20px 16px; border-bottom: 1px solid #e2e8f0; }
+        .section-title { font-size: 1.1rem; font-weight: 700; margin-bottom: 16px; color: var(--primary); display: flex; align-items: center; }
+        .section-title::before { content: ''; display: inline-block; width: 4px; height: 1.2rem; background-color: var(--accent); margin-right: 8px; border-radius: 2px; }
+        .input-group { margin-bottom: 16px; }
+        .input-group label { display: block; margin-bottom: 6px; font-size: 0.9rem; font-weight: 600; color: #475569; }
+        .input-wrapper { display: flex; align-items: center; background: var(--bg); border: 1px solid #cbd5e1; border-radius: 8px; overflow: hidden; }
+        .input-wrapper input, .input-wrapper select { flex: 1; padding: 12px; border: none; font-size: 1rem; background: transparent; outline: none; }
+        .input-wrapper:focus-within { border-color: var(--accent); box-shadow: 0 0 0 2px rgba(59,130,246,0.2); }
+        .input-wrapper .unit { padding: 0 12px; font-size: 0.95rem; color: #64748b; font-weight: 500; background: #f1f5f9; border-left: 1px solid #cbd5e1; display: flex; align-items: center; }
+        
+        .result-box { background-color: #f1f5f9; padding: 16px; border-radius: 8px; border: 1px solid #e2e8f0; margin-top: 12px; font-size: 0.95rem; line-height: 1.6; }
+        .highlight { font-weight: 700; color: var(--danger); font-size: 1.1rem; }
+        .success { font-weight: 700; color: var(--success); font-size: 1.1rem; }
+        .warning-text { color: var(--danger); font-size: 0.85rem; margin-top: 6px; display: none; font-weight: 500; }
+        
+        /* 投資比例滑桿區 */
+        .slider-group { margin-bottom: 14px; background: #ffffff; padding: 14px 12px; border-radius: 8px; border: 1px solid #e2e8f0; }
+        .slider-header { display: flex; flex-direction: column; margin-bottom: 10px; }
+        .slider-top-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+        .slider-name { font-weight: 600; font-size: 1.05rem; color: var(--primary); }
+        .slider-val { font-weight: 700; color: var(--accent); font-size: 1.1rem; }
+        
+        /* 針對股價與配息金額的新排版 */
+        .metrics-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 4px; }
+        .metric-col { display: flex; flex-direction: column; }
+        .metric-col label { display: flex; justify-content: space-between; align-items: center; font-size: 0.75rem; color: #64748b; margin-bottom: 4px; font-weight: normal; }
+        
+        /* 帶入最新股價按鈕樣式 */
+        .btn-latest { font-size: 0.65rem; background: #e2e8f0; color: #475569; border: none; border-radius: 4px; padding: 2px 4px; cursor: pointer; transition: all 0.2s ease; }
+        .btn-latest:hover, .btn-latest:active { background: var(--accent); color: white; }
+        
+        .metric-input-wrap { display: flex; align-items: center; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 4px; padding: 2px 4px; }
+        .metric-input-wrap:focus-within { border-color: var(--accent); background: #fff; }
+        .metric-input-wrap input { width: 100%; border: none; background: transparent; text-align: right; font-size: 0.85rem; padding: 4px; outline: none; }
+        .metric-input-wrap .u { font-size: 0.75rem; color: #94a3b8; margin-left: 2px; }
+        
+        input[type="range"] { width: 100%; height: 6px; background: #e2e8f0; border-radius: 3px; outline: none; -webkit-appearance: none; margin-top: 10px; }
+        input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 22px; height: 22px; border-radius: 50%; background: var(--accent); cursor: pointer; border: 2px solid #fff; box-shadow: 0 2px 4px rgba(0,0,0,0.2); }
+        
+        .verdict { margin-top: 16px; padding-top: 16px; border-top: 1px dashed #cbd5e1; text-align: center; font-size: 1.05rem; line-height: 1.5; }
+        .summary-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 12px; }
+        .summary-item { background: #fff; border: 1px solid #e2e8f0; padding: 10px; border-radius: 6px; text-align: center; }
+        .summary-label { font-size: 0.8rem; color: #64748b; margin-bottom: 4px; }
+        .summary-val { font-weight: 700; font-size: 1.1rem; }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <div class="header">🏠 房貸現金流套利試算</div>
+        
+        <!-- 階段 1：房屋估值與貸款評估 -->
+        <div class="section">
+            <div class="section-title">1. 原屋融資 / 抵押貸款評估</div>
+            <div class="input-group">
+                <label>房屋目前市值</label>
+                <div class="input-wrapper">
+                    <input type="number" id="houseValue" value="2000" inputmode="numeric">
+                    <div class="unit">萬元</div>
+                </div>
+            </div>
+            <div class="input-group">
+                <label>預估銀行可貸成數</label>
+                <div class="input-wrapper">
+                    <input type="number" id="loanRatio" value="80" inputmode="numeric">
+                    <div class="unit">%</div>
+                </div>
+            </div>
+            <div class="result-box">
+                預估最高可貸額度：<span class="highlight" id="maxLoanAmt">1,600</span> 萬元
+            </div>
+        </div>
+
+        <!-- 階段 2：貸款還款試算 -->
+        <div class="section">
+            <div class="section-title">2. 貸款方案與本息攤還試算</div>
+            <div class="input-group">
+                <label>實際欲貸款金額</label>
+                <div class="input-wrapper">
+                    <input type="number" id="actualLoan" value="1000" inputmode="numeric">
+                    <div class="unit">萬元</div>
+                </div>
+                <div class="warning-text" id="loanWarning">⚠️ 警告：已超過預估最高可貸額度</div>
+            </div>
+            <div class="input-group">
+                <label>貸款利率</label>
+                <div class="input-wrapper">
+                    <input type="number" id="loanRate" value="2.30" step="0.01" inputmode="decimal">
+                    <div class="unit">%</div>
+                </div>
+            </div>
+            <div class="input-group">
+                <label>貸款年限</label>
+                <div class="input-wrapper">
+                    <select id="loanYears">
+                        <option value="20">20 年</option>
+                        <option value="30" selected>30 年</option>
+                        <option value="40">40 年</option>
+                    </select>
+                </div>
+            </div>
+            <div class="result-box">
+                每月應繳本息：<span class="highlight" id="monthlyPay">38,442</span> 元<br>
+                每年應繳本息：<span class="highlight" id="yearlyPay">461,304</span> 元
+            </div>
+        </div>
+
+        <!-- 階段 3：投資組合分配 (最新股價版) -->
+        <div class="section">
+            <div class="section-title">3. 投資配置與現金流判定</div>
+            <p style="font-size:0.85rem; color:#64748b; margin-top:0;">自行修改股價測試，或點擊「最新」載入真實預設股價。系統會換算可買股數與總領息。</p>
+            
+            <div id="slidersContainer"></div>
+            
+            <div class="result-box" style="margin-top: 16px;">
+                <div class="summary-grid">
+                    <div class="summary-item">
+                        <div class="summary-label">實質殖利率</div>
+                        <div class="summary-val" style="color: var(--success);" id="avgDiv">0.00%</div>
+                    </div>
+                    <div class="summary-item">
+                        <div class="summary-label">綜合成長率</div>
+                        <div class="summary-val" style="color: var(--primary);" id="avgGrowth">0.00%</div>
+                    </div>
+                </div>
+                
+                每年預估領息(現金流)：<span class="success" id="yearlyDivAmt">0</span> 元<br>
+                每年帳面增值(不賣出)：<span style="font-weight: 700;" id="yearlyGrowthAmt">0</span> 元<br>
+                每年需繳房貸本息：<span class="highlight" id="yearlyPayCmp">0</span> 元<br>
+                
+                <div class="verdict" id="finalVerdict"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 設定投資標的與預設值
+        // recentPrice: 用戶指定的最新靜態股價，點擊「最新」按鈕時帶入
+        const assets = [
+            { id: '0050', name: '台股 0050', defPrice: 94.1, recentPrice: 94.1, defDivCash: 5.5, defGrow: 5.0, weight: 20 },
+            { id: '0056', name: '台股 0056', defPrice: 49.48, recentPrice: 49.48, defDivCash: 2.2, defGrow: 0.5, weight: 20 },
+            { id: '2330', name: '台積電 (2330)', defPrice: 2175, recentPrice: 2175, defDivCash: 16.0, defGrow: 10.5, weight: 20 },
+            { id: 'VOO', name: '美股 ETF (VOO)', defPrice: 22676, recentPrice: 22676, defDivCash: 240, defGrow: 7.5, weight: 20 },
+            { id: 'QQQ', name: '美股 ETF (QQQ)', defPrice: 22094, recentPrice: 22094, defDivCash: 75, defGrow: 11.5, weight: 20 }
+        ];
+
+        const getEl = id => document.getElementById(id);
+        const formatCurrency = num => Math.round(num).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+
+        // 動態生成滑桿 UI
+        const slidersContainer = getEl('slidersContainer');
+        assets.forEach(asset => {
+            const html = `
+                <div class="slider-group">
+                    <div class="slider-header">
+                        <div class="slider-top-row">
+                            <div class="slider-name">${asset.name}</div>
+                            <div class="slider-val"><span id="val_${asset.id}">20.0</span>%</div>
+                        </div>
+                        <div class="metrics-grid">
+                            <div class="metric-col">
+                                <label>目前股價 
+                                    <button class="btn-latest" onclick="setLatestPrice('${asset.id}', ${asset.recentPrice})" title="載入最新股價">最新</button>
+                                </label>
+                                <div class="metric-input-wrap">
+                                    <input type="number" id="p_${asset.id}" value="${asset.defPrice}" step="0.01"><span class="u">元</span>
+                                </div>
+                            </div>
+                            <div class="metric-col">
+                                <label>年配息金</label>
+                                <div class="metric-input-wrap">
+                                    <input type="number" id="d_${asset.id}" value="${asset.defDivCash}" step="0.1"><span class="u">元</span>
+                                </div>
+                            </div>
+                            <div class="metric-col">
+                                <label>預估成長</label>
+                                <div class="metric-input-wrap">
+                                    <input type="number" id="g_${asset.id}" value="${asset.defGrow}" step="0.1"><span class="u">%</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <input type="range" id="w_${asset.id}" min="0" max="100" value="${asset.weight}">
+                </div>
+            `;
+            slidersContainer.insertAdjacentHTML('beforeend', html);
+        });
+
+        // 帶入最新股價的全局函數
+        window.setLatestPrice = function(assetId, recentPrice) {
+            const priceInput = getEl(`p_${assetId}`);
+            if (priceInput) {
+                // 帶入價格並加上簡單的視覺回饋
+                priceInput.value = recentPrice;
+                priceInput.parentElement.style.borderColor = "var(--success)";
+                setTimeout(() => { priceInput.parentElement.style.borderColor = ""; }, 500);
+                
+                // 強制重新計算
+                calculateAll();
+            }
+        };
+
+        // 綁定所有事件
+        const inputsToWatch = ['houseValue', 'loanRatio', 'actualLoan', 'loanRate', 'loanYears'];
+        inputsToWatch.forEach(id => getEl(id).addEventListener('input', calculateAll));
+        assets.forEach(a => {
+            getEl(`w_${a.id}`).addEventListener('input', calculateAll);
+            getEl(`p_${a.id}`).addEventListener('input', calculateAll);
+            getEl(`d_${a.id}`).addEventListener('input', calculateAll);
+            getEl(`g_${a.id}`).addEventListener('input', calculateAll);
+        });
+
+        function calculateAll() {
+            // 階段 1：可貸金額
+            const hVal = parseFloat(getEl('houseValue').value) || 0;
+            const lRat = parseFloat(getEl('loanRatio').value) || 0;
+            const maxLoan = hVal * (lRat / 100);
+            getEl('maxLoanAmt').innerText = formatCurrency(maxLoan);
+
+            // 階段 2：貸款還款試算
+            const actualL = parseFloat(getEl('actualLoan').value) || 0;
+            const lRate = parseFloat(getEl('loanRate').value) || 0;
+            const lYears = parseFloat(getEl('loanYears').value) || 30;
+            
+            getEl('loanWarning').style.display = actualL > maxLoan ? 'block' : 'none';
+            
+            const principal = actualL * 10000; // 萬元轉元
+            const monthlyRate = (lRate / 100) / 12;
+            const totalMonths = lYears * 12;
+            
+            let monthlyPay = 0;
+            if (monthlyRate === 0) {
+                monthlyPay = totalMonths > 0 ? principal / totalMonths : 0;
+            } else {
+                monthlyPay = principal * (monthlyRate * Math.pow(1 + monthlyRate, totalMonths)) / (Math.pow(1 + monthlyRate, totalMonths) - 1);
+            }
+            const yearlyPay = monthlyPay * 12;
+            
+            getEl('monthlyPay').innerText = formatCurrency(monthlyPay);
+            getEl('yearlyPay').innerText = formatCurrency(yearlyPay);
+            getEl('yearlyPayCmp').innerText = formatCurrency(yearlyPay);
+
+            // 階段 3：基於股價與股數計算現金流
+            let rawTotalWeight = 0;
+            assets.forEach(a => { rawTotalWeight += (parseFloat(getEl(`w_${a.id}`).value) || 0); });
+
+            let totalYearlyDivAmt = 0;
+            let weightedGrowth = 0;
+
+            assets.forEach(a => {
+                const rawW = parseFloat(getEl(`w_${a.id}`).value) || 0;
+                const effectiveW = rawTotalWeight > 0 ? (rawW / rawTotalWeight) : 0;
+                getEl(`val_${a.id}`).innerText = (effectiveW * 100).toFixed(1);
+                
+                // 分配到該資產的現金 (元)
+                const allocatedCash = principal * effectiveW;
+                
+                const price = parseFloat(getEl(`p_${a.id}`).value) || 1; // 避免除以0
+                const divCash = parseFloat(getEl(`d_${a.id}`).value) || 0;
+                const g = parseFloat(getEl(`g_${a.id}`).value) || 0;
+                
+                // 計算可買股數 (允許零股，故不強制取整)
+                const shares = allocatedCash / price;
+                
+                // 該資產領到的總股息
+                totalYearlyDivAmt += shares * divCash;
+                
+                // 成長率依然使用權重計算
+                weightedGrowth += effectiveW * (g / 100);
+            });
+
+            // 回推實質綜合殖利率
+            const actualYield = principal > 0 ? (totalYearlyDivAmt / principal) : 0;
+
+            // 更新綜合指標
+            getEl('avgDiv').innerText = (actualYield * 100).toFixed(2) + '%';
+            getEl('avgGrowth').innerText = (weightedGrowth * 100).toFixed(2) + '%';
+            
+            const yearlyGrowthAmt = principal * weightedGrowth;
+            
+            getEl('yearlyDivAmt').innerText = formatCurrency(totalYearlyDivAmt);
+            getEl('yearlyGrowthAmt').innerText = formatCurrency(yearlyGrowthAmt);
+            
+            // 判定結果 (僅比較股息現金流 vs 房貸支出)
+            const verdictEl = getEl('finalVerdict');
+            if (rawTotalWeight === 0) {
+                verdictEl.innerHTML = '<span style="color:#64748b;">請拉動滑桿配置投資比例</span>';
+            } else if (totalYearlyDivAmt >= yearlyPay) {
+                const surplus = totalYearlyDivAmt - yearlyPay;
+                verdictEl.innerHTML = `✅ <span class="success">現金流為正！完美套利</span><br>
+                光靠股息即可支付房貸，每年現金結餘 <span class="success">+${formatCurrency(surplus)}</span> 元，<br>
+                並完整保留帳面增值 <span style="font-weight:600;">${formatCurrency(yearlyGrowthAmt)}</span> 元。`;
+            } else {
+                const gap = yearlyPay - totalYearlyDivAmt;
+                verdictEl.innerHTML = `⚠️ <span class="highlight">出現現金流缺口</span><br>
+                股息不足以付清房貸本息，每年需自掏腰包或賣股變現 <span class="highlight">-${formatCurrency(gap)}</span> 元，<br>
+                但預期帳面仍會增值 <span style="font-weight:600;">${formatCurrency(yearlyGrowthAmt)}</span> 元。`;
+            }
+        }
+
+        // 初始執行
+        calculateAll();
+    </script>
+</body>
+</html>
