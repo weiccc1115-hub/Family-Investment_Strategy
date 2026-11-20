@@ -5,81 +5,380 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <title>房貸套利試算 (實體配息與最新股價版)</title>
+    <title>房貸套利試算 (每日自動股價版)</title>
     <style>
-        :root { --primary: #0f172a; --accent: #3b82f6; --bg: #f8fafc; --card: #ffffff; --text: #1e293b; --success: #059669; --danger: #dc2626; --warning: #d97706; }
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background-color: var(--bg); color: var(--text); margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-        .app-container { max-width: 480px; margin: 0 auto; background-color: var(--card); min-height: 100vh; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); display: flex; flex-direction: column; padding-bottom: 24px; }
-        .header { background-color: var(--primary); color: #fff; padding: 18px 16px; text-align: center; font-size: 1.25rem; font-weight: 600; position: sticky; top: 0; z-index: 10; }
-        .section { padding: 20px 16px; border-bottom: 1px solid #e2e8f0; }
-        .section-title { font-size: 1.1rem; font-weight: 700; margin-bottom: 16px; color: var(--primary); display: flex; align-items: center; }
-        .section-title::before { content: ''; display: inline-block; width: 4px; height: 1.2rem; background-color: var(--accent); margin-right: 8px; border-radius: 2px; }
-        .input-group { margin-bottom: 16px; }
-        .input-group label { display: block; margin-bottom: 6px; font-size: 0.9rem; font-weight: 600; color: #475569; }
-        .input-wrapper { display: flex; align-items: center; background: var(--bg); border: 1px solid #cbd5e1; border-radius: 8px; overflow: hidden; }
-        .input-wrapper input, .input-wrapper select { flex: 1; padding: 12px; border: none; font-size: 1rem; background: transparent; outline: none; }
-        .input-wrapper:focus-within { border-color: var(--accent); box-shadow: 0 0 0 2px rgba(59,130,246,0.2); }
-        .input-wrapper .unit { padding: 0 12px; font-size: 0.95rem; color: #64748b; font-weight: 500; background: #f1f5f9; border-left: 1px solid #cbd5e1; display: flex; align-items: center; }
-        
-        .result-box { background-color: #f1f5f9; padding: 16px; border-radius: 8px; border: 1px solid #e2e8f0; margin-top: 12px; font-size: 0.95rem; line-height: 1.6; }
-        .highlight { font-weight: 700; color: var(--danger); font-size: 1.1rem; }
-        .success { font-weight: 700; color: var(--success); font-size: 1.1rem; }
-        .warning-text { color: var(--danger); font-size: 0.85rem; margin-top: 6px; display: none; font-weight: 500; }
-        
+        :root {
+            --primary: #0f172a;
+            --accent: #3b82f6;
+            --bg: #f8fafc;
+            --card: #ffffff;
+            --text: #1e293b;
+            --success: #059669;
+            --danger: #dc2626;
+            --warning: #d97706;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
+            padding: 0;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .app-container {
+            max-width: 480px;
+            margin: 0 auto;
+            background-color: var(--card);
+            min-height: 100vh;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-direction: column;
+            padding-bottom: 32px;
+        }
+        .header {
+            background-color: var(--primary);
+            color: #fff;
+            padding: 18px 16px;
+            text-align: center;
+            font-size: 1.25rem;
+            font-weight: 600;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+        .section {
+            padding: 20px 16px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        .section-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            margin-bottom: 16px;
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+        }
+        .section-title::before {
+            content: '';
+            display: inline-block;
+            width: 4px;
+            height: 1.2rem;
+            background-color: var(--accent);
+            margin-right: 8px;
+            border-radius: 2px;
+        }
+        .input-group {
+            margin-bottom: 16px;
+        }
+        .input-group label {
+            display: block;
+            margin-bottom: 6px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: #475569;
+        }
+        .input-wrapper {
+            display: flex;
+            align-items: center;
+            background: var(--bg);
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        .input-wrapper input,
+        .input-wrapper select {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            font-size: 1rem;
+            background: transparent;
+            outline: none;
+        }
+        .input-wrapper:focus-within {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+        }
+        .input-wrapper .unit {
+            padding: 0 12px;
+            font-size: 0.95rem;
+            color: #64748b;
+            font-weight: 500;
+            background: #f1f5f9;
+            border-left: 1px solid #cbd5e1;
+            display: flex;
+            align-items: center;
+            align-self: stretch;
+        }
+        .result-box {
+            background-color: #f1f5f9;
+            padding: 16px;
+            border-radius: 8px;
+            border: 1px solid #e2e8f0;
+            margin-top: 12px;
+            font-size: 0.95rem;
+            line-height: 1.6;
+        }
+        .highlight {
+            font-weight: 700;
+            color: var(--danger);
+            font-size: 1.1rem;
+        }
+        .success {
+            font-weight: 700;
+            color: var(--success);
+            font-size: 1.1rem;
+        }
+        .warning-text {
+            color: var(--danger);
+            font-size: 0.85rem;
+            margin-top: 6px;
+            display: none;
+            font-weight: 500;
+        }
+
+        /* 股價同步狀態列 */
+        .sync-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 8px;
+            background: #eff6ff;
+            border: 1px solid #bfdbfe;
+            border-radius: 8px;
+            padding: 10px 12px;
+            margin-bottom: 14px;
+            font-size: 0.8rem;
+            color: #1e40af;
+        }
+        .sync-info {
+            line-height: 1.4;
+        }
+        .btn-sync-all {
+            background-color: var(--accent);
+            color: #fff;
+            border: none;
+            border-radius: 6px;
+            padding: 7px 10px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: opacity 0.2s, transform 0.1s;
+        }
+        .btn-sync-all:active {
+            transform: scale(0.96);
+        }
+        .btn-sync-all:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
         /* 投資比例滑桿區 */
-        .slider-group { margin-bottom: 14px; background: #ffffff; padding: 14px 12px; border-radius: 8px; border: 1px solid #e2e8f0; }
-        .slider-header { display: flex; flex-direction: column; margin-bottom: 10px; }
-        .slider-top-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
-        .slider-name { font-weight: 600; font-size: 1.05rem; color: var(--primary); }
-        .slider-val { font-weight: 700; color: var(--accent); font-size: 1.1rem; }
-        
-        /* 針對股價與配息金額的新排版 */
-        .metrics-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 4px; }
-        .metric-col { display: flex; flex-direction: column; }
-        .metric-col label { display: flex; justify-content: space-between; align-items: center; font-size: 0.75rem; color: #64748b; margin-bottom: 4px; font-weight: normal; }
-        
-        /* 帶入最新股價按鈕樣式 */
-        .btn-latest { font-size: 0.65rem; background: #e2e8f0; color: #475569; border: none; border-radius: 4px; padding: 2px 4px; cursor: pointer; transition: all 0.2s ease; }
-        .btn-latest:hover, .btn-latest:active { background: var(--accent); color: white; }
-        
-        .metric-input-wrap { display: flex; align-items: center; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 4px; padding: 2px 4px; }
-        .metric-input-wrap:focus-within { border-color: var(--accent); background: #fff; }
-        .metric-input-wrap input { width: 100%; border: none; background: transparent; text-align: right; font-size: 0.85rem; padding: 4px; outline: none; }
-        .metric-input-wrap .u { font-size: 0.75rem; color: #94a3b8; margin-left: 2px; }
-        
-        input[type="range"] { width: 100%; height: 6px; background: #e2e8f0; border-radius: 3px; outline: none; -webkit-appearance: none; margin-top: 10px; }
-        input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 22px; height: 22px; border-radius: 50%; background: var(--accent); cursor: pointer; border: 2px solid #fff; box-shadow: 0 2px 4px rgba(0,0,0,0.2); }
-        
-        .verdict { margin-top: 16px; padding-top: 16px; border-top: 1px dashed #cbd5e1; text-align: center; font-size: 1.05rem; line-height: 1.5; }
-        .summary-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 12px; }
-        .summary-item { background: #fff; border: 1px solid #e2e8f0; padding: 10px; border-radius: 6px; text-align: center; }
-        .summary-label { font-size: 0.8rem; color: #64748b; margin-bottom: 4px; }
-        .summary-val { font-weight: 700; font-size: 1.1rem; }
+        .slider-group {
+            margin-bottom: 14px;
+            background: #ffffff;
+            padding: 14px 12px;
+            border-radius: 8px;
+            border: 1px solid #e2e8f0;
+        }
+        .slider-header {
+            display: flex;
+            flex-direction: column;
+            margin-bottom: 10px;
+        }
+        .slider-top-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        .slider-name {
+            font-weight: 600;
+            font-size: 1.02rem;
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        .usd-hint {
+            font-size: 0.72rem;
+            color: #64748b;
+            font-weight: 400;
+        }
+        .btn-latest {
+            background-color: #f1f5f9;
+            border: 1px solid #cbd5e1;
+            color: #475569;
+            font-size: 0.75rem;
+            padding: 3px 8px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .btn-latest:hover {
+            background-color: #e2e8f0;
+            color: var(--primary);
+        }
+        .btn-latest:active {
+            transform: scale(0.95);
+            background-color: var(--accent);
+            color: white;
+            border-color: var(--accent);
+        }
+        .slider-val {
+            font-weight: 700;
+            color: var(--accent);
+            font-size: 1.1rem;
+        }
+
+        /* 股價、配息、成長排版 */
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 8px;
+            margin-bottom: 4px;
+        }
+        .metric-col {
+            display: flex;
+            flex-direction: column;
+        }
+        .metric-col label {
+            font-size: 0.75rem;
+            color: #64748b;
+            margin-bottom: 4px;
+            font-weight: normal;
+        }
+        .metric-input-wrap {
+            display: flex;
+            align-items: center;
+            background: #f8fafc;
+            border: 1px solid #cbd5e1;
+            border-radius: 4px;
+            padding: 2px 4px;
+            transition: all 0.2s;
+        }
+        .metric-input-wrap.highlight-update {
+            border-color: var(--success);
+            box-shadow: 0 0 0 2px rgba(5, 150, 105, 0.2);
+            background: #f0fdf4;
+        }
+        .metric-input-wrap:focus-within {
+            border-color: var(--accent);
+            background: #fff;
+        }
+        .metric-input-wrap input {
+            width: 100%;
+            border: none;
+            background: transparent;
+            text-align: right;
+            font-size: 0.85rem;
+            padding: 4px;
+            outline: none;
+        }
+        .metric-input-wrap .u {
+            font-size: 0.75rem;
+            color: #94a3b8;
+            margin-left: 2px;
+        }
+
+        input[type="range"] {
+            width: 100%;
+            height: 6px;
+            background: #e2e8f0;
+            border-radius: 3px;
+            outline: none;
+            -webkit-appearance: none;
+            margin-top: 10px;
+        }
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            background: var(--accent);
+            cursor: pointer;
+            border: 2px solid #fff;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .verdict {
+            margin-top: 16px;
+            padding-top: 16px;
+            border-top: 1px dashed #cbd5e1;
+            text-align: center;
+            font-size: 1.05rem;
+            line-height: 1.5;
+        }
+        .summary-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+        .summary-item {
+            background: #fff;
+            border: 1px solid #e2e8f0;
+            padding: 10px;
+            border-radius: 6px;
+            text-align: center;
+        }
+        .summary-label {
+            font-size: 0.8rem;
+            color: #64748b;
+            margin-bottom: 4px;
+        }
+        .summary-val {
+            font-weight: 700;
+            font-size: 1.1rem;
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: #1e293b;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-size: 0.88rem;
+            opacity: 0;
+            transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            z-index: 100;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            pointer-events: none;
+            white-space: nowrap;
+        }
+        .toast.show {
+            transform: translateX(-50%) translateY(0);
+            opacity: 1;
+        }
     </style>
 </head>
 <body>
     <div class="app-container">
         <div class="header">🏠 房貸現金流套利試算</div>
-        
+
         <!-- 階段 1：房屋估值與貸款評估 -->
         <div class="section">
             <div class="section-title">1. 原屋融資 / 抵押貸款評估</div>
             <div class="input-group">
                 <label>房屋目前市值</label>
                 <div class="input-wrapper">
-                    <input type="number" id="houseValue" value="2000" inputmode="numeric">
+                    <input type="number" id="houseValue" value="4000" min="0" inputmode="numeric">
                     <div class="unit">萬元</div>
                 </div>
             </div>
             <div class="input-group">
                 <label>預估銀行可貸成數</label>
                 <div class="input-wrapper">
-                    <input type="number" id="loanRatio" value="80" inputmode="numeric">
+                    <input type="number" id="loanRatio" value="80" min="0" max="100" inputmode="numeric">
                     <div class="unit">%</div>
                 </div>
             </div>
             <div class="result-box">
-                預估最高可貸額度：<span class="highlight" id="maxLoanAmt">1,600</span> 萬元
+                預估最高可貸額度：<span class="highlight" id="maxLoanAmt">3,200</span> 萬元
             </div>
         </div>
 
@@ -89,7 +388,7 @@
             <div class="input-group">
                 <label>實際欲貸款金額</label>
                 <div class="input-wrapper">
-                    <input type="number" id="actualLoan" value="1000" inputmode="numeric">
+                    <input type="number" id="actualLoan" value="1000" min="0" inputmode="numeric">
                     <div class="unit">萬元</div>
                 </div>
                 <div class="warning-text" id="loanWarning">⚠️ 警告：已超過預估最高可貸額度</div>
@@ -97,7 +396,7 @@
             <div class="input-group">
                 <label>貸款利率</label>
                 <div class="input-wrapper">
-                    <input type="number" id="loanRate" value="2.30" step="0.01" inputmode="decimal">
+                    <input type="number" id="loanRate" value="3.00" min="0" step="0.01" inputmode="decimal">
                     <div class="unit">%</div>
                 </div>
             </div>
@@ -112,18 +411,26 @@
                 </div>
             </div>
             <div class="result-box">
-                每月應繳本息：<span class="highlight" id="monthlyPay">38,442</span> 元<br>
-                每年應繳本息：<span class="highlight" id="yearlyPay">461,304</span> 元
+                每月應繳本息：<span class="highlight" id="monthlyPay">42,160</span> 元<br>
+                每年應繳本息：<span class="highlight" id="yearlyPay">505,925</span> 元
             </div>
         </div>
 
-        <!-- 階段 3：投資組合分配 (最新股價版) -->
+        <!-- 階段 3：投資組合分配 -->
         <div class="section">
             <div class="section-title">3. 投資配置與現金流判定</div>
-            <p style="font-size:0.85rem; color:#64748b; margin-top:0;">自行修改股價測試，或點擊「最新」載入真實預設股價。系統會換算可買股數與總領息。</p>
-            
+
+            <div class="sync-bar">
+                <div class="sync-info" id="syncStatus">正在同步今日最新股價...</div>
+                <button type="button" class="btn-sync-all" id="btnSyncAll">🔄 更新全部</button>
+            </div>
+
+            <p style="font-size:0.85rem; color:#64748b; margin-top:0;">
+                股價每日自動更新（美股已依最新匯率換算台幣）。拉動滑桿調整配置權重。
+            </p>
+
             <div id="slidersContainer"></div>
-            
+
             <div class="result-box" style="margin-top: 16px;">
                 <div class="summary-grid">
                     <div class="summary-item">
@@ -135,29 +442,54 @@
                         <div class="summary-val" style="color: var(--primary);" id="avgGrowth">0.00%</div>
                     </div>
                 </div>
-                
+
                 每年預估領息(現金流)：<span class="success" id="yearlyDivAmt">0</span> 元<br>
                 每年帳面增值(不賣出)：<span style="font-weight: 700;" id="yearlyGrowthAmt">0</span> 元<br>
                 每年需繳房貸本息：<span class="highlight" id="yearlyPayCmp">0</span> 元<br>
-                
+
                 <div class="verdict" id="finalVerdict"></div>
             </div>
         </div>
     </div>
 
+    <div class="toast" id="toastMsg">已更新最新股價</div>
+
     <script>
-        // 設定投資標的與預設值
-        // recentPrice: 用戶指定的最新靜態股價，點擊「最新」按鈕時帶入
+        const CACHE_KEY = 'mortgage_arb_daily_prices_v1';
+
+        // 5 檔投資標的設定（完全套用指定預設配息與預估成長率；defPrice 為離線備援初值）
         const assets = [
-            { id: '0050', name: '台股 0050', defPrice: 94.1, recentPrice: 94.1, defDivCash: 5.5, defGrow: 5.0, weight: 20 },
-            { id: '0056', name: '台股 0056', defPrice: 49.48, recentPrice: 49.48, defDivCash: 2.2, defGrow: 0.5, weight: 20 },
-            { id: '2330', name: '台積電 (2330)', defPrice: 2175, recentPrice: 2175, defDivCash: 16.0, defGrow: 10.5, weight: 20 },
-            { id: 'VOO', name: '美股 ETF (VOO)', defPrice: 22676, recentPrice: 22676, defDivCash: 240, defGrow: 7.5, weight: 20 },
-            { id: 'QQQ', name: '美股 ETF (QQQ)', defPrice: 22094, recentPrice: 22094, defDivCash: 75, defGrow: 11.5, weight: 20 }
+            { id: '0050', symbol: '0050.TW', name: '台股 0050', currency: 'TWD', defPrice: 198.5, latestPrice: 198.5, defDivCash: 3.27, defGrow: 15.0, weight: 20 },
+            { id: '0056', symbol: '0056.TW', name: '台股 0056', currency: 'TWD', defPrice: 38.6, latestPrice: 38.6, defDivCash: 2.07, defGrow: 5.3, weight: 20 },
+            { id: '2330', symbol: '2330.TW', name: '台積電 (2330)', currency: 'TWD', defPrice: 1045, latestPrice: 1045, defDivCash: 10.55, defGrow: 20.0, weight: 20 },
+            { id: 'VOO', symbol: 'VOO', name: '美股 ETF (VOO)', currency: 'USD', defPrice: 16500, latestPrice: 16500, defDivCash: 150, defGrow: 10.0, weight: 20 },
+            { id: 'QQQ', symbol: 'QQQ', name: '美股 ETF (QQQ)', currency: 'USD', defPrice: 15500, latestPrice: 15500, defDivCash: 60, defGrow: 10.0, weight: 20 }
         ];
+
+        let latestUsdTwd = 32.5;
+        let latestUsdPrices = {};
 
         const getEl = id => document.getElementById(id);
         const formatCurrency = num => Math.round(num).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+
+        const getTodayDateStr = () => {
+            const now = new Date();
+            const y = now.getFullYear();
+            const m = String(now.getMonth() + 1).padStart(2, '0');
+            const d = String(now.getDate()).padStart(2, '0');
+            return `${y}-${m}-${d}`;
+        };
+
+        let toastTimeout;
+        const showToast = (msg) => {
+            const toast = getEl('toastMsg');
+            toast.innerText = msg;
+            toast.classList.add('show');
+            clearTimeout(toastTimeout);
+            toastTimeout = setTimeout(() => {
+                toast.classList.remove('show');
+            }, 2200);
+        };
 
         // 動態生成滑桿 UI
         const slidersContainer = getEl('slidersContainer');
@@ -166,22 +498,24 @@
                 <div class="slider-group">
                     <div class="slider-header">
                         <div class="slider-top-row">
-                            <div class="slider-name">${asset.name}</div>
+                            <div class="slider-name">
+                                ${asset.name}
+                                <button type="button" class="btn-latest" id="btn_latest_${asset.id}">最新</button>
+                                ${asset.currency === 'USD' ? `<span class="usd-hint" id="usd_hint_${asset.id}"></span>` : ''}
+                            </div>
                             <div class="slider-val"><span id="val_${asset.id}">20.0</span>%</div>
                         </div>
                         <div class="metrics-grid">
                             <div class="metric-col">
-                                <label>目前股價 
-                                    <button class="btn-latest" onclick="setLatestPrice('${asset.id}', ${asset.recentPrice})" title="載入最新股價">最新</button>
-                                </label>
-                                <div class="metric-input-wrap">
-                                    <input type="number" id="p_${asset.id}" value="${asset.defPrice}" step="0.01"><span class="u">元</span>
+                                <label>目前股價(台幣)</label>
+                                <div class="metric-input-wrap" id="wrap_p_${asset.id}">
+                                    <input type="number" id="p_${asset.id}" value="${asset.defPrice}" min="0.01" step="0.01"><span class="u">元</span>
                                 </div>
                             </div>
                             <div class="metric-col">
                                 <label>年配息金</label>
                                 <div class="metric-input-wrap">
-                                    <input type="number" id="d_${asset.id}" value="${asset.defDivCash}" step="0.1"><span class="u">元</span>
+                                    <input type="number" id="d_${asset.id}" value="${asset.defDivCash}" min="0" step="0.01"><span class="u">元</span>
                                 </div>
                             </div>
                             <div class="metric-col">
@@ -198,102 +532,319 @@
             slidersContainer.insertAdjacentHTML('beforeend', html);
         });
 
-        // 帶入最新股價的全局函數
-        window.setLatestPrice = function(assetId, recentPrice) {
-            const priceInput = getEl(`p_${assetId}`);
-            if (priceInput) {
-                // 帶入價格並加上簡單的視覺回饋
-                priceInput.value = recentPrice;
-                priceInput.parentElement.style.borderColor = "var(--success)";
-                setTimeout(() => { priceInput.parentElement.style.borderColor = ""; }, 500);
-                
-                // 強制重新計算
-                calculateAll();
-            }
-        };
+        // 套用單一標的最新股價並觸發動畫
+        function applyAssetPrice(assetId, newPrice, showFeedback = false) {
+            const asset = assets.find(a => a.id === assetId);
+            if (!asset || !Number.isFinite(newPrice) || newPrice <= 0) return;
 
-        // 綁定所有事件
+            const rounded = Math.round(newPrice * 100) / 100;
+            asset.latestPrice = rounded;
+
+            const inputEl = getEl(`p_${assetId}`);
+            const wrapEl = getEl(`wrap_p_${assetId}`);
+            const changed = parseFloat(inputEl.value) !== rounded;
+
+            inputEl.value = rounded;
+
+            if (asset.currency === 'USD' && latestUsdPrices[assetId]) {
+                const hintEl = getEl(`usd_hint_${assetId}`);
+                if (hintEl) {
+                    hintEl.innerText = `($${latestUsdPrices[assetId].toFixed(2)})`;
+                }
+            }
+
+            if (changed) {
+                wrapEl.classList.add('highlight-update');
+                setTimeout(() => wrapEl.classList.remove('highlight-update'), 800);
+            }
+
+            if (showFeedback) {
+                showToast(changed ? `${asset.name} 已更新為 ${rounded} 元` : `${asset.name} 已是最新股價`);
+            }
+        }
+
+        // 套用整批股價資料
+        function applyPricePayload(payload, sourceLabel) {
+            if (!payload || !payload.prices) return false;
+            if (payload.usdTwd && payload.usdTwd > 0) {
+                latestUsdTwd = payload.usdTwd;
+            }
+            if (payload.usdPrices) {
+                latestUsdPrices = payload.usdPrices;
+            }
+
+            let updatedCount = 0;
+            assets.forEach(a => {
+                const val = payload.prices[a.id];
+                if (typeof val === 'number' && Number.isFinite(val) && val > 0) {
+                    applyAssetPrice(a.id, val, false);
+                    updatedCount++;
+                }
+            });
+
+            if (updatedCount > 0) {
+                const dateLabel = payload.updatedAt || getTodayDateStr();
+                getEl('syncStatus').innerHTML =
+                    `📅 股價更新：<strong>${dateLabel}</strong>（${sourceLabel}）<br>💱 匯率 USD/TWD：${latestUsdTwd.toFixed(2)}`;
+                calculateAll();
+                return true;
+            }
+            return false;
+        }
+
+        // 透過 CORS 代理向 Yahoo Finance 抓取單一標的收盤價（附超時與雙代理備援）
+        async function fetchYahooSymbolPrice(symbol) {
+            const targetUrl = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(symbol)}?range=5d&interval=1d`;
+            const proxies = [
+                `https://api.allorigins.win/raw?url=${encodeURIComponent(targetUrl)}`,
+                `https://corsproxy.io/?${encodeURIComponent(targetUrl)}`
+            ];
+
+            for (const proxyUrl of proxies) {
+                const controller = new AbortController();
+                const timer = setTimeout(() => controller.abort(), 7000);
+                try {
+                    const res = await fetch(proxyUrl, { signal: controller.signal });
+                    clearTimeout(timer);
+                    if (!res.ok) continue;
+                    const data = await res.json();
+                    const meta = data?.chart?.result?.[0]?.meta;
+                    if (meta && typeof meta.regularMarketPrice === 'number' && meta.regularMarketPrice > 0) {
+                        return meta.regularMarketPrice;
+                    }
+                    const closes = data?.chart?.result?.[0]?.indicators?.quote?.[0]?.close || [];
+                    const validCloses = closes.filter(v => typeof v === 'number' && Number.isFinite(v) && v > 0);
+                    if (validCloses.length > 0) {
+                        return validCloses[validCloses.length - 1];
+                    }
+                } catch (_) {
+                    clearTimeout(timer);
+                }
+            }
+            return null;
+        }
+
+        // 嘗試讀取 GitHub Actions 產生的 ./prices.json
+        async function fetchStaticPricesJson() {
+            const controller = new AbortController();
+            const timer = setTimeout(() => controller.abort(), 4000);
+            try {
+                const res = await fetch(`./prices.json?t=${Date.now()}`, {
+                    cache: 'no-store',
+                    signal: controller.signal
+                });
+                clearTimeout(timer);
+                if (!res.ok) return null;
+                const json = await res.json();
+                if (json && json.prices) return json;
+            } catch (_) {
+                clearTimeout(timer);
+            }
+            return null;
+        }
+
+        // 從瀏覽器端即時向 Yahoo Finance 抓取全部股價與匯率
+        async function fetchAllLivePrices() {
+            const symbols = ['TWD=X', ...assets.map(a => a.symbol)];
+            const results = await Promise.all(symbols.map(s => fetchYahooSymbolPrice(s)));
+
+            const fxRate = results[0] || latestUsdTwd;
+            const prices = {};
+            const usdPrices = {};
+            let successCount = 0;
+
+            assets.forEach((asset, idx) => {
+                const rawPrice = results[idx + 1];
+                if (typeof rawPrice === 'number' && rawPrice > 0) {
+                    if (asset.currency === 'USD') {
+                        usdPrices[asset.id] = Math.round(rawPrice * 100) / 100;
+                        prices[asset.id] = Math.round(rawPrice * fxRate * 100) / 100;
+                    } else {
+                        prices[asset.id] = Math.round(rawPrice * 100) / 100;
+                    }
+                    successCount++;
+                }
+            });
+
+            if (successCount === 0) return null;
+
+            const payload = {
+                updatedAt: getTodayDateStr(),
+                usdTwd: Math.round(fxRate * 100) / 100,
+                prices,
+                usdPrices
+            };
+
+            try {
+                localStorage.setItem(CACHE_KEY, JSON.stringify(payload));
+            } catch (_) {}
+
+            return payload;
+        }
+
+        // 每日自動同步主流程：優先讀 GitHub Actions 的 prices.json -> 其次今日快取 -> 其次前端即時抓價
+        async function syncDailyPrices(forceLive = false) {
+            const btn = getEl('btnSyncAll');
+            btn.disabled = true;
+            btn.innerText = '更新中...';
+            const today = getTodayDateStr();
+
+            try {
+                if (!forceLive) {
+                    // 1. 優先讀取同源的 prices.json（由 GitHub Actions 每日排程更新）
+                    const repoJson = await fetchStaticPricesJson();
+                    if (repoJson && applyPricePayload(repoJson, '每日自動同步')) {
+                        return;
+                    }
+
+                    // 2. 檢查瀏覽器今日快取，避免同日重複請求代理伺服器
+                    try {
+                        const cachedRaw = localStorage.getItem(CACHE_KEY);
+                        if (cachedRaw) {
+                            const cached = JSON.parse(cachedRaw);
+                            if (cached && cached.updatedAt === today && applyPricePayload(cached, '今日快取')) {
+                                return;
+                            }
+                        }
+                    } catch (_) {}
+                }
+
+                // 3. 即時抓取最新行情
+                getEl('syncStatus').innerText = '正在向 Yahoo Finance 抓取最新報價...';
+                const livePayload = await fetchAllLivePrices();
+                if (livePayload && applyPricePayload(livePayload, '即時行情')) {
+                    if (forceLive) showToast('全部股價已更新至最新行情');
+                    return;
+                }
+
+                // 4. 若強制即時抓價失敗，回退嘗試 prices.json
+                if (forceLive) {
+                    const fallbackJson = await fetchStaticPricesJson();
+                    if (fallbackJson && applyPricePayload(fallbackJson, '每日排程檔案')) {
+                        showToast('已載入最新排程股價');
+                        return;
+                    }
+                }
+
+                // 5. 全部離線時的備援提示
+                getEl('syncStatus').innerHTML = '⚠️ 無法連線更新，目前使用預設參考股價（可手動修改）';
+                if (forceLive) showToast('網路連線失敗，請稍後再試');
+            } finally {
+                btn.disabled = false;
+                btn.innerText = '🔄 更新全部';
+            }
+        }
+
+        // 單檔「最新」按鈕：套用當日已同步的最新價，若需要則即時抓單檔
+        async function handleSingleLatestClick(asset) {
+            const btn = getEl(`btn_latest_${asset.id}`);
+            const originalText = btn.innerText;
+            btn.disabled = true;
+            btn.innerText = '...';
+
+            try {
+                const rawPrice = await fetchYahooSymbolPrice(asset.symbol);
+                if (typeof rawPrice === 'number' && rawPrice > 0) {
+                    let finalPrice = rawPrice;
+                    if (asset.currency === 'USD') {
+                        const fx = await fetchYahooSymbolPrice('TWD=X');
+                        if (fx && fx > 0) latestUsdTwd = fx;
+                        latestUsdPrices[asset.id] = Math.round(rawPrice * 100) / 100;
+                        finalPrice = rawPrice * latestUsdTwd;
+                    }
+                    applyAssetPrice(asset.id, finalPrice, true);
+                    calculateAll();
+                } else {
+                    applyAssetPrice(asset.id, asset.latestPrice, true);
+                    calculateAll();
+                }
+            } finally {
+                btn.disabled = false;
+                btn.innerText = originalText;
+            }
+        }
+
+        // 綁定所有輸入事件與按鈕事件
         const inputsToWatch = ['houseValue', 'loanRatio', 'actualLoan', 'loanRate', 'loanYears'];
         inputsToWatch.forEach(id => getEl(id).addEventListener('input', calculateAll));
+
         assets.forEach(a => {
             getEl(`w_${a.id}`).addEventListener('input', calculateAll);
             getEl(`p_${a.id}`).addEventListener('input', calculateAll);
             getEl(`d_${a.id}`).addEventListener('input', calculateAll);
             getEl(`g_${a.id}`).addEventListener('input', calculateAll);
+            getEl(`btn_latest_${a.id}`).addEventListener('click', () => handleSingleLatestClick(a));
         });
+
+        getEl('btnSyncAll').addEventListener('click', () => syncDailyPrices(true));
 
         function calculateAll() {
             // 階段 1：可貸金額
-            const hVal = parseFloat(getEl('houseValue').value) || 0;
-            const lRat = parseFloat(getEl('loanRatio').value) || 0;
+            const hVal = Math.max(0, parseFloat(getEl('houseValue').value) || 0);
+            const lRat = Math.max(0, parseFloat(getEl('loanRatio').value) || 0);
             const maxLoan = hVal * (lRat / 100);
             getEl('maxLoanAmt').innerText = formatCurrency(maxLoan);
 
             // 階段 2：貸款還款試算
-            const actualL = parseFloat(getEl('actualLoan').value) || 0;
-            const lRate = parseFloat(getEl('loanRate').value) || 0;
-            const lYears = parseFloat(getEl('loanYears').value) || 30;
-            
+            const actualL = Math.max(0, parseFloat(getEl('actualLoan').value) || 0);
+            const lRate = Math.max(0, parseFloat(getEl('loanRate').value) || 0);
+            const lYears = Math.max(1, parseFloat(getEl('loanYears').value) || 30);
+
             getEl('loanWarning').style.display = actualL > maxLoan ? 'block' : 'none';
-            
+
             const principal = actualL * 10000; // 萬元轉元
             const monthlyRate = (lRate / 100) / 12;
             const totalMonths = lYears * 12;
-            
+
             let monthlyPay = 0;
             if (monthlyRate === 0) {
                 monthlyPay = totalMonths > 0 ? principal / totalMonths : 0;
             } else {
-                monthlyPay = principal * (monthlyRate * Math.pow(1 + monthlyRate, totalMonths)) / (Math.pow(1 + monthlyRate, totalMonths) - 1);
+                const factor = Math.pow(1 + monthlyRate, totalMonths);
+                monthlyPay = principal * (monthlyRate * factor) / (factor - 1);
             }
             const yearlyPay = monthlyPay * 12;
-            
+
             getEl('monthlyPay').innerText = formatCurrency(monthlyPay);
             getEl('yearlyPay').innerText = formatCurrency(yearlyPay);
             getEl('yearlyPayCmp').innerText = formatCurrency(yearlyPay);
 
             // 階段 3：基於股價與股數計算現金流
             let rawTotalWeight = 0;
-            assets.forEach(a => { rawTotalWeight += (parseFloat(getEl(`w_${a.id}`).value) || 0); });
+            assets.forEach(a => {
+                rawTotalWeight += Math.max(0, parseFloat(getEl(`w_${a.id}`).value) || 0);
+            });
 
             let totalYearlyDivAmt = 0;
             let weightedGrowth = 0;
 
             assets.forEach(a => {
-                const rawW = parseFloat(getEl(`w_${a.id}`).value) || 0;
+                const rawW = Math.max(0, parseFloat(getEl(`w_${a.id}`).value) || 0);
                 const effectiveW = rawTotalWeight > 0 ? (rawW / rawTotalWeight) : 0;
                 getEl(`val_${a.id}`).innerText = (effectiveW * 100).toFixed(1);
-                
-                // 分配到該資產的現金 (元)
+
                 const allocatedCash = principal * effectiveW;
-                
-                const price = parseFloat(getEl(`p_${a.id}`).value) || 1; // 避免除以0
-                const divCash = parseFloat(getEl(`d_${a.id}`).value) || 0;
+                const priceInput = parseFloat(getEl(`p_${a.id}`).value);
+                const price = (Number.isFinite(priceInput) && priceInput > 0) ? priceInput : 1;
+                const divCash = Math.max(0, parseFloat(getEl(`d_${a.id}`).value) || 0);
                 const g = parseFloat(getEl(`g_${a.id}`).value) || 0;
-                
-                // 計算可買股數 (允許零股，故不強制取整)
+
                 const shares = allocatedCash / price;
-                
-                // 該資產領到的總股息
                 totalYearlyDivAmt += shares * divCash;
-                
-                // 成長率依然使用權重計算
                 weightedGrowth += effectiveW * (g / 100);
             });
 
-            // 回推實質綜合殖利率
             const actualYield = principal > 0 ? (totalYearlyDivAmt / principal) : 0;
 
-            // 更新綜合指標
             getEl('avgDiv').innerText = (actualYield * 100).toFixed(2) + '%';
             getEl('avgGrowth').innerText = (weightedGrowth * 100).toFixed(2) + '%';
-            
+
             const yearlyGrowthAmt = principal * weightedGrowth;
-            
+
             getEl('yearlyDivAmt').innerText = formatCurrency(totalYearlyDivAmt);
             getEl('yearlyGrowthAmt').innerText = formatCurrency(yearlyGrowthAmt);
-            
-            // 判定結果 (僅比較股息現金流 vs 房貸支出)
+
+            // 現金流判定
             const verdictEl = getEl('finalVerdict');
             if (rawTotalWeight === 0) {
                 verdictEl.innerHTML = '<span style="color:#64748b;">請拉動滑桿配置投資比例</span>';
@@ -310,8 +861,9 @@
             }
         }
 
-        // 初始執行
+        // 初始試算與啟動每日自動股價同步
         calculateAll();
+        syncDailyPrices(false);
     </script>
 </body>
 </html>
